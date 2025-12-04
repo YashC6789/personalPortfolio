@@ -27,7 +27,41 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <nav className="
+                fixed top-4 left-1/2 -translate-x-1/2
+                inline-flex w-fit items-center gap-6
+                px-6 py-3
+                rounded-full
+
+                /* Glass effect */
+                bg-[--background]/30
+                dark:bg-[--background]/20
+                backdrop-blur-xl
+
+                /* Glossy highlights */
+                border border-white/20 dark:border-white/10
+                shadow-[0_4px_20px_rgba(0,0,0,0.15)]
+                dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]
+
+                /* Smooth interaction */
+                transition-all duration-300
+                hover:bg-[--background]/40 hover:shadow-[0_6px_28px_rgba(0,0,0,0.25)]
+                hover:scale-[1.01]
+
+                z-50
+            ">
+                <div className="flex items-center gap-6 text-sm font-medium text-ink/subtle">
+                    <a href="/about" className="hover:text-brand transition">About</a>
+                    <a href="/projects" className="hover:text-brand transition">Projects</a>
+                    <a href="/projects" className="hover:text-brand transition">Interests</a>
+                    <a href="/resume" className="hover:text-brand transition">Resume</a>
+                    <a href="/blog" className="hover:text-brand transition">Blog</a>
+                    <a href="/contact" className="hover:text-brand transition">Contact</a>
+                </div>
+            </nav>
+        <main>
+            {children}
+        </main>
       </body>
     </html>
   );

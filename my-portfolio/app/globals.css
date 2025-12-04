@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* iPhone-style portrait aspect ratio: 3:4 */
+.portrait-card {
+    aspect-ratio: 3 / 4;
 }
 
+/* app/globals.css – somewhere after @import "tailwindcss"; */
+.mosaic-rect {
+    aspect-ratio: 16 / 9;  /* nice landscape rectangle */
+  }
+
+/* ---------- LIGHT MODE (default) ---------- */
+:root {
+  --background: #f5f7f6;  /* soft mist gray */
+  --foreground: #1c1c1e;  /* deep charcoal */
+
+  /* Brand palette */
+  --brand: #3baf7a;       /* soft emerald */
+  --brand-dark: #2e8a63;  /* deeper pine green */
+
+  /* Accent + subtle text */
+  --accent: #e9dcc5;      /* warm sand */
+  --ink-subtle: #4b4b4f;  /* muted gray */
+}
+
+/* ---------- DARK MODE: medium-gray palette ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #1f1f23;     /* medium-dark gray */
+    --foreground: #e5e5e7;     /* soft light gray */
+    --ink-subtle: #a1a1a6;     /* gentle muted gray for subtitles */
+
+    /* Optional: slightly cooler accent in dark mode */
+    --accent: #3a3a3d;
+  }
+}
+
+/* ---------- Tailwind v4 theme tokens ---------- */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-accent: var(--accent);
+  --color-ink-subtle: var(--ink-subtle);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ---------- Global styles ---------- */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
