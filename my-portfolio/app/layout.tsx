@@ -59,7 +59,8 @@ export default function RootLayout({
                     <a href="/contact" className="hover:text-brand transition">Contact</a>
                 </div>
             </nav>
-        <main>
+        <main className="pt-20">
+            <div style={{ height: '65px' }} aria-hidden="true" />
             {children}
         </main>
       </body>

@@ -6,7 +6,7 @@ import ImageCollage from "@/components/ImageCollage";
 export default function Home() {
   return (
         <div>
-            <main className="mt-28">
+            <main>
                 <section>
                     <h1 className="text-center text-7xl font-bold text-brand">
                         Yashkaran Chauhan
