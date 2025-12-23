@@ -8,6 +8,7 @@
 steps:
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
+    dir: 'my-portfolio'
     args:
       - 'build'
       - '-t'
