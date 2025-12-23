@@ -19,6 +19,8 @@ steps:
   # Build the Docker image (using lowercase image name)
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
     args:
       - '-c'
       - |
@@ -28,6 +30,8 @@ steps:
   # Push the image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
     args:
       - '-c'
       - |
@@ -37,6 +41,8 @@ steps:
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
+    env:
+      - 'PROJECT_ID=$PROJECT_ID'
     args:
       - '-c'
       - |
