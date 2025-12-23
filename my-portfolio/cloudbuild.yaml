@@ -6,28 +6,28 @@ steps:
     args:
       - '-c'
       - |
-        # Use _IMAGE_NAME if provided, otherwise convert _SERVICE_NAME to lowercase
-        if [ -z "${_IMAGE_NAME}" ]; then
-          IMAGE_NAME=$(echo "${_SERVICE_NAME}" | tr '[:upper:]' '[:lower:]')
+        # Convert _SERVICE_NAME to lowercase and save to file
+        # Use _IMAGE_NAME if provided, otherwise convert _SERVICE_NAME
+        if [ -n "$${_IMAGE_NAME:-}" ]; then
+          echo "$${_IMAGE_NAME}" | tr '[:upper:]' '[:lower:]' > /workspace/image-name.txt
         else
-          IMAGE_NAME="${_IMAGE_NAME}"
+          echo "$${_SERVICE_NAME}" | tr '[:upper:]' '[:lower:]' > /workspace/image-name.txt
         fi
-        echo "$IMAGE_NAME" > /workspace/image-name.txt
-        echo "Using image name: $IMAGE_NAME"
+        echo "Image name: $$(cat /workspace/image-name.txt)"
   
   # Build the Docker image (using lowercase image name)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/$(cat /workspace/image-name.txt)'
+      - 'gcr.io/$PROJECT_ID/$$(cat /workspace/image-name.txt)'
       - '.'
   
   # Push the image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/$(cat /workspace/image-name.txt)'
+      - 'gcr.io/$PROJECT_ID/$$(cat /workspace/image-name.txt)'
   
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -37,7 +37,7 @@ steps:
       - 'deploy'
       - '$_SERVICE_NAME'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/$(cat /workspace/image-name.txt)'
+      - 'gcr.io/$PROJECT_ID/$$(cat /workspace/image-name.txt)'
       - '--region'
       - '$_REGION'
       - '--platform'
