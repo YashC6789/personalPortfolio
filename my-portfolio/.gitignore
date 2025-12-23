@@ -19,8 +19,6 @@
 
 # production
 /build
-public/me/
-public/projects/
 
 # misc
 .DS_Store
