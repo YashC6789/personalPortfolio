@@ -3,35 +3,35 @@
 
 import { useEffect, useState } from "react";
 
-// 👇 Put your actual filenames here
+// 👇 Put your actual filenames here (with correct case and leading slash)
 const LANDSCAPES = [
-  "me/landscape/land1.jpg",
-  "me/landscape/land2.jpg",
-  "me/landscape/land3.jpg",
-  "me/landscape/land4.jpg",
-  "me/landscape/land5.jpg",
-  "me/landscape/land6.jpg",
-  "me/landscape/land7.jpg",
-  "me/landscape/land8.jpg",
-  "me/landscape/land9.jpg",
-  "me/landscape/land10.jpg",
-  "me/landscape/land11.jpg",
+  "/me/landscape/land1.JPG",
+  "/me/landscape/land2.jpg",
+  "/me/landscape/land3.JPG",
+  "/me/landscape/land4.JPG",
+  "/me/landscape/land5.jpg",
+  "/me/landscape/land6.jpg",
+  "/me/landscape/land7.jpg",
+  "/me/landscape/land8.JPG",
+  "/me/landscape/land9.JPG",
+  "/me/landscape/land10.JPG",
+  "/me/landscape/land11.JPG",
 ];
 
 const VERTICALS = [
-  "me/vertical/vert1.jpg",
-  "me/vertical/vert2.jpg",
-  "me/vertical/vert3.jpg",
-  "me/vertical/vert4.jpg",
-  "me/vertical/vert5.jpg",
-  "me/vertical/vert6.jpg",
-  "me/vertical/vert7.jpg",
-  "me/vertical/vert8.jpg",
-  "me/vertical/vert9.jpg",
-  "me/vertical/vert10.jpg",
-  "me/vertical/vert11.jpg",
-  "me/vertical/vert12.jpg",
-  "me/vertical/vert13.jpg",
+  "/me/vertical/vert1.jpg",
+  "/me/vertical/vert2.jpg",
+  "/me/vertical/vert3.jpg",
+  "/me/vertical/vert4.JPG",
+  "/me/vertical/vert5.JPG",
+  "/me/vertical/vert6.JPG",
+  "/me/vertical/vert7.JPG",
+  "/me/vertical/vert8.JPG",
+  "/me/vertical/vert9.jpg",
+  "/me/vertical/vert10.jpg",
+  "/me/vertical/vert11.jpg",
+  "/me/vertical/vert12.jpg",
+  "/me/vertical/vert13.JPG",
 ];
 
 // 4 columns
