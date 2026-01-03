@@ -206,7 +206,9 @@ export async function GET(request: NextRequest) {
 
     // Handle Range requests
     if (range && end !== undefined) {
-      const totalLength = parseInt(contentLength || '0', 10);
+      const totalLength = typeof contentLength === 'number' 
+        ? contentLength 
+        : parseInt(String(contentLength || '0'), 10);
       headers.set('Content-Range', `bytes ${start}-${end}/${totalLength}`);
       headers.set('Accept-Ranges', 'bytes');
       return new NextResponse(readableStream, {
