@@ -1,63 +1,242 @@
 // components/ImageCollage.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 
-// 👇 Put your actual filenames here (with correct case and leading slash)
-const LANDSCAPES = [
-  "/me/landscape/land1.JPG",
-  "/me/landscape/land2.jpg",
-  "/me/landscape/land3.JPG",
-  "/me/landscape/land4.JPG",
-  "/me/landscape/land5.jpg",
-  "/me/landscape/land6.jpg",
-  "/me/landscape/land7.jpg",
-  "/me/landscape/land8.JPG",
-  "/me/landscape/land9.JPG",
-  "/me/landscape/land10.JPG",
-  "/me/landscape/land11.JPG",
-];
+interface CollageImage {
+  key: string;
+  orientation: "landscape" | "portrait";
+  contentType?: string;
+  size?: number;
+  updated?: string;
+}
 
-const VERTICALS = [
-  "/me/vertical/vert1.jpg",
-  "/me/vertical/vert2.jpg",
-  "/me/vertical/vert3.jpg",
-  "/me/vertical/vert4.JPG",
-  "/me/vertical/vert5.JPG",
-  "/me/vertical/vert6.JPG",
-  "/me/vertical/vert7.JPG",
-  "/me/vertical/vert8.JPG",
-  "/me/vertical/vert9.jpg",
-  "/me/vertical/vert10.jpg",
-  "/me/vertical/vert11.jpg",
-  "/me/vertical/vert12.jpg",
-  "/me/vertical/vert13.JPG",
-];
+// Pattern: 3 landscape, 1 portrait, repeating
+const PATTERN = ["landscape", "landscape", "landscape", "portrait"] as const;
 
-// 4 columns
-const COLUMN_INDICES = [0, 1, 2, 3];
+/**
+ * Shuffles array deterministically based on seed
+ */
+function seededShuffle<T>(array: T[], seed: number): T[] {
+  const shuffled = [...array];
+  let random = seed;
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    random = (random * 9301 + 49297) % 233280;
+    const j = Math.floor((random / 233280) * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+/**
+ * Builds a column queue following 3:1 landscape-to-portrait pattern
+ */
+function buildColumnQueue(
+  landscapes: CollageImage[],
+  portraits: CollageImage[],
+  columnIndex: number
+): CollageImage[] {
+  // Use column index as seed for deterministic shuffling
+  const seededLandscapes = seededShuffle(landscapes, columnIndex * 1000);
+  const seededPortraits = seededShuffle(portraits, columnIndex * 2000);
+
+  const queue: CollageImage[] = [];
+  let landscapeIdx = 0;
+  let portraitIdx = 0;
+
+  // If one orientation is missing, we'll use only the available one
+  const hasLandscapes = seededLandscapes.length > 0;
+  const hasPortraits = seededPortraits.length > 0;
+
+  // If both are missing, return empty queue
+  if (!hasLandscapes && !hasPortraits) {
+    return queue;
+  }
+
+  // If only one orientation is available, fill queue with that
+  if (!hasPortraits) {
+    // Only landscapes available - fill queue with landscapes
+    for (let i = 0; i < Math.min(100, seededLandscapes.length * 3); i++) {
+      queue.push(seededLandscapes[landscapeIdx % seededLandscapes.length]);
+      landscapeIdx++;
+    }
+    return queue;
+  }
+
+  if (!hasLandscapes) {
+    // Only portraits available - fill queue with portraits
+    for (let i = 0; i < Math.min(100, seededPortraits.length * 3); i++) {
+      queue.push(seededPortraits[portraitIdx % seededPortraits.length]);
+      portraitIdx++;
+    }
+    return queue;
+  }
+
+  // Both orientations available - follow 3:1 pattern
+  for (let i = 0; i < 100; i++) {
+    // Cycle through pattern
+    const requiredOrientation = PATTERN[i % PATTERN.length];
+
+    if (requiredOrientation === "landscape") {
+      queue.push(seededLandscapes[landscapeIdx % seededLandscapes.length]);
+      landscapeIdx++;
+    } else {
+      queue.push(seededPortraits[portraitIdx % seededPortraits.length]);
+      portraitIdx++;
+    }
+  }
+
+  return queue;
+}
 
 export default function ImageCollage() {
-  // starting offsets for rotation
-  const [landStart, setLandStart] = useState(0);
-  const [vertStart, setVertStart] = useState(0);
+  const [manifest, setManifest] = useState<CollageImage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [rotationOffsets, setRotationOffsets] = useState<number[]>([]);
 
-  // for click-to-enlarge
+  // For click-to-enlarge
   const [activeSrc, setActiveSrc] = useState<string | null>(null);
 
-  // rotate images every 5 seconds
+  // Number of columns based on viewport (responsive)
+  const [columnCount, setColumnCount] = useState(4);
+
+  // Fetch manifest on mount
   useEffect(() => {
+    async function fetchManifest() {
+      try {
+        const response = await fetch("/api/collage/manifest");
+        if (!response.ok) {
+          throw new Error("Failed to fetch manifest");
+        }
+        const data = await response.json();
+        setManifest(data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching manifest:", err);
+        setError("Failed to load images");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchManifest();
+  }, []);
+
+  // Update column count based on viewport
+  useEffect(() => {
+    function updateColumnCount() {
+      const width = window.innerWidth;
+      let newCount = 4;
+      if (width < 640) {
+        newCount = 1;
+      } else if (width < 1024) {
+        newCount = 2;
+      } else if (width < 1280) {
+        newCount = 3;
+      }
+      
+      setColumnCount(newCount);
+      // Reset rotation offsets to match new column count
+      setRotationOffsets(Array(newCount).fill(0));
+    }
+
+    updateColumnCount();
+    window.addEventListener("resize", updateColumnCount);
+    return () => window.removeEventListener("resize", updateColumnCount);
+  }, []);
+
+  // Separate images by orientation
+  const { landscapes, portraits } = useMemo(() => {
+    const lands: CollageImage[] = [];
+    const ports: CollageImage[] = [];
+
+    for (const img of manifest) {
+      if (img.orientation === "landscape") {
+        lands.push(img);
+      } else {
+        ports.push(img);
+      }
+    }
+
+    return { landscapes: lands, portraits: ports };
+  }, [manifest]);
+
+  // Build column queues with 3:1 pattern
+  const columnQueues = useMemo(() => {
+    const queues: CollageImage[][] = [];
+    for (let i = 0; i < columnCount; i++) {
+      queues.push(buildColumnQueue(landscapes, portraits, i));
+    }
+    return queues;
+  }, [landscapes, portraits, columnCount]);
+
+  // Use ref to always access latest columnQueues in interval callback
+  const columnQueuesRef = useRef(columnQueues);
+  useEffect(() => {
+    columnQueuesRef.current = columnQueues;
+  }, [columnQueues]);
+
+  // Sync rotationOffsets with columnQueues length when it changes
+  useEffect(() => {
+    if (columnQueues.length > 0 && rotationOffsets.length !== columnQueues.length) {
+      setRotationOffsets(Array(columnQueues.length).fill(0));
+    }
+  }, [columnQueues.length, rotationOffsets.length]);
+
+  // Rotate images every 20 seconds
+  useEffect(() => {
+    if (columnQueues.length === 0) return;
+
     const id = setInterval(() => {
-      setLandStart((prev) =>
-        LANDSCAPES.length > 0 ? (prev + 1) % LANDSCAPES.length : prev
-      );
-      setVertStart((prev) =>
-        VERTICALS.length > 0 ? (prev + 2) % VERTICALS.length : prev
-      );
+      setRotationOffsets((prev) => {
+        // Always use latest columnQueues from ref to avoid stale closure
+        const currentQueues = columnQueuesRef.current;
+        if (currentQueues.length === 0) return prev;
+        
+        // Ensure prev array matches current column count
+        const adjustedPrev = prev.length >= currentQueues.length 
+          ? prev.slice(0, currentQueues.length)
+          : [...prev, ...Array(currentQueues.length - prev.length).fill(0)];
+        
+        return adjustedPrev.map((offset, idx) => {
+          const queue = currentQueues[idx];
+          if (!queue || queue.length === 0) return offset;
+          // Advance by 1 image, maintaining pattern
+          return (offset + 1) % queue.length;
+        });
+      });
     }, 20000);
 
     return () => clearInterval(id);
-  }, []);
+  }, [columnQueues.length]); // Only depend on length to recreate interval when structure changes
+
+  // Get image URL from API
+  function getImageUrl(key: string): string {
+    return `/api/collage/image?key=${encodeURIComponent(key)}`;
+  }
+
+  if (loading) {
+    return (
+      <section className="mt-10">
+        <div className="mx-auto text-center" style={{ maxWidth: 1200 }}>
+          <p className="text-ink/subtle">Loading images...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error || manifest.length === 0) {
+    return (
+      <section className="mt-10">
+        <div className="mx-auto text-center" style={{ maxWidth: 1200 }}>
+          <p className="text-ink/subtle">
+            {error || "No images available"}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -67,65 +246,73 @@ export default function ImageCollage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
               gap: "16px",
             }}
           >
-            {COLUMN_INDICES.map((colIdx) => {
-              // pick 1 landscape + 2 verticals for this column
-              const landscapeSrc =
-                LANDSCAPES.length > 0
-                  ? LANDSCAPES[(landStart + colIdx) % LANDSCAPES.length]
-                  : null;
+            {Array.from({ length: columnCount }).map((_, colIdx) => {
+              const queue = columnQueues[colIdx] || [];
+              const offset = rotationOffsets[colIdx] || 0;
 
-              const verticalSrc1 =
-                VERTICALS.length > 0
-                  ? VERTICALS[(vertStart + colIdx * 2) % VERTICALS.length]
-                  : null;
-
-              const verticalSrc2 =
-                VERTICALS.length > 0
-                  ? VERTICALS[
-                      (vertStart + colIdx * 2 + 1) % VERTICALS.length
-                    ]
-                  : null;
-
-              // order inside the column: vertical – landscape – vertical
-              const columnImages = [
-                verticalSrc1,
-                landscapeSrc,
-                verticalSrc2,
-              ].filter(Boolean) as string[];
+              // Get images for this column based on current offset
+              // Display enough images to fill the column (typically 8-12 images)
+              // Use modulo arithmetic to wrap around without duplicates
+              const imagesToShow: CollageImage[] = [];
+              const imagesNeeded = 12;
+              
+              if (queue.length > 0) {
+                for (let i = 0; i < imagesNeeded; i++) {
+                  const index = (offset + i) % queue.length;
+                  imagesToShow.push(queue[index]);
+                }
+              }
 
               return (
                 <div
                   key={colIdx}
                   style={{ display: "grid", gap: "16px" }}
                 >
-                  {columnImages.map((src) => (
-                    <button
-                    key={src}
-                    type="button"
-                    onClick={() => setActiveSrc(src)}
-                    className="
-                      group relative overflow-hidden rounded-lg
-                      transition-transform duration-300
-                      hover:-translate-y-1
-                      hover:shadow-xl
-                    "
-                  >
-                    <img
-                      src={src}
-                      alt=""
-                      className="
-                        h-auto max-w-full rounded-lg
-                        transition-transform duration-300
-                        group-hover:scale-110
-                        cursor-pointer
-                      "
-                    />
-                  </button>
-                  ))}
+                  {imagesToShow.map((img, imgIdx) => {
+                    const imageUrl = getImageUrl(img.key);
+                    const isPortrait = img.orientation === "portrait";
+                    // Use stable key based on image identity to prevent unnecessary remounting
+                    // This allows React to track images across rotations and preserve DOM state
+                    // Handle rare duplicates by appending index
+                    const keyCount = imagesToShow.slice(0, imgIdx).filter(i => i.key === img.key).length;
+                    const stableKey = keyCount > 0 
+                      ? `${colIdx}-${img.key}-${keyCount}` 
+                      : `${colIdx}-${img.key}`;
+                    
+                    return (
+                      <button
+                        key={stableKey}
+                        type="button"
+                        onClick={() => setActiveSrc(imageUrl)}
+                        className="
+                          group relative overflow-hidden rounded-lg
+                          transition-transform duration-300
+                          hover:-translate-y-1
+                          hover:shadow-xl
+                        "
+                        style={{
+                          aspectRatio: isPortrait ? "2/3" : "3/2",
+                        }}
+                      >
+                        <img
+                          src={imageUrl}
+                          alt=""
+                          className="
+                            w-full h-full rounded-lg
+                            object-cover
+                            transition-transform duration-300
+                            group-hover:scale-110
+                            cursor-pointer
+                          "
+                          loading="lazy"
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
               );
             })}

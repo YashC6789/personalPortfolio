@@ -46,6 +46,8 @@ steps:
       - '0'
       - '--max-instances'
       - '10'
+      - '--set-env-vars'
+      - 'GCS_BUCKET=rotating_image_collage_bucket,GCS_PREFIX=collage/'
 
 # Store images in Container Registry
 images:
