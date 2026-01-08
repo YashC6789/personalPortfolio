@@ -1,7 +1,7 @@
 // components/ImageCollage.tsx
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 
 interface CollageImage {
   key: string;
@@ -93,13 +93,13 @@ export default function ImageCollage() {
   const [manifest, setManifest] = useState<CollageImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rotationOffsets, setRotationOffsets] = useState<number[]>([]);
 
   // For click-to-enlarge
   const [activeSrc, setActiveSrc] = useState<string | null>(null);
 
-  // Number of columns based on viewport (responsive)
-  const [columnCount, setColumnCount] = useState(4);
+  // Fixed to 4 columns as per requirements
+  const columnCount = 4;
+  const imagesPerColumn = 4; // 3 landscape + 1 portrait
 
   // Fetch manifest on mount
   useEffect(() => {
@@ -140,29 +140,6 @@ export default function ImageCollage() {
     fetchManifest();
   }, []);
 
-  // Update column count based on viewport
-  useEffect(() => {
-    function updateColumnCount() {
-      const width = window.innerWidth;
-      let newCount = 4;
-      if (width < 640) {
-        newCount = 1;
-      } else if (width < 1024) {
-        newCount = 2;
-      } else if (width < 1280) {
-        newCount = 3;
-      }
-      
-      setColumnCount(newCount);
-      // Reset rotation offsets to match new column count
-      setRotationOffsets(Array(newCount).fill(0));
-    }
-
-    updateColumnCount();
-    window.addEventListener("resize", updateColumnCount);
-    return () => window.removeEventListener("resize", updateColumnCount);
-  }, []);
-
   // Separate images by orientation
   const { landscapes, portraits } = useMemo(() => {
     const lands: CollageImage[] = [];
@@ -179,54 +156,108 @@ export default function ImageCollage() {
     return { landscapes: lands, portraits: ports };
   }, [manifest]);
 
-  // Build column queues with 3:1 pattern
-  const columnQueues = useMemo(() => {
-    const queues: CollageImage[][] = [];
-    for (let i = 0; i < columnCount; i++) {
-      queues.push(buildColumnQueue(landscapes, portraits, i));
+  // Build a global shuffled pool of images for no-duplicate selection
+  const shuffledLandscapes = useMemo(() => {
+    return seededShuffle(landscapes, 12345);
+  }, [landscapes]);
+
+  const shuffledPortraits = useMemo(() => {
+    return seededShuffle(portraits, 67890);
+  }, [portraits]);
+
+
+  // Track indices across rotations to progress through images
+  const landscapeIdxRef = useRef(0);
+  const portraitIdxRef = useRef(0);
+
+  // Function to select unique images for all columns (no duplicates across columns)
+  const selectUniqueImages = useCallback((): CollageImage[][] => {
+    const columns: CollageImage[][] = [];
+    const usedKeys = new Set<string>();
+    let landscapeIdx = landscapeIdxRef.current;
+    let portraitIdx = portraitIdxRef.current;
+
+    for (let col = 0; col < columnCount; col++) {
+      const column: CollageImage[] = [];
+      
+      // Each column needs 3 landscape + 1 portrait
+      for (let i = 0; i < imagesPerColumn; i++) {
+        const requiredOrientation = PATTERN[i % PATTERN.length];
+        let selected: CollageImage | null = null;
+        let attempts = 0;
+        const maxAttempts = Math.max(shuffledLandscapes.length, shuffledPortraits.length) * 2;
+
+        while (!selected && attempts < maxAttempts) {
+          if (requiredOrientation === "landscape") {
+            if (shuffledLandscapes.length === 0) break;
+            const candidate = shuffledLandscapes[landscapeIdx % shuffledLandscapes.length];
+            landscapeIdx++;
+            
+            if (!usedKeys.has(candidate.key)) {
+              selected = candidate;
+              usedKeys.add(candidate.key);
+            }
+          } else {
+            if (shuffledPortraits.length === 0) break;
+            const candidate = shuffledPortraits[portraitIdx % shuffledPortraits.length];
+            portraitIdx++;
+            
+            if (!usedKeys.has(candidate.key)) {
+              selected = candidate;
+              usedKeys.add(candidate.key);
+            }
+          }
+          attempts++;
+        }
+
+        // Fallback: if we can't find a unique image, use any available
+        if (!selected) {
+          if (requiredOrientation === "landscape" && shuffledLandscapes.length > 0) {
+            selected = shuffledLandscapes[landscapeIdx % shuffledLandscapes.length];
+            landscapeIdx++;
+          } else if (requiredOrientation === "portrait" && shuffledPortraits.length > 0) {
+            selected = shuffledPortraits[portraitIdx % shuffledPortraits.length];
+            portraitIdx++;
+          }
+        }
+
+        if (selected) {
+          column.push(selected);
+          usedKeys.add(selected.key);
+        }
+      }
+
+      columns.push(column);
     }
-    return queues;
-  }, [landscapes, portraits, columnCount]);
 
-  // Use ref to always access latest columnQueues in interval callback
-  const columnQueuesRef = useRef(columnQueues);
-  useEffect(() => {
-    columnQueuesRef.current = columnQueues;
-  }, [columnQueues]);
+    // Update refs for next rotation
+    landscapeIdxRef.current = landscapeIdx;
+    portraitIdxRef.current = portraitIdx;
 
-  // Sync rotationOffsets with columnQueues length when it changes
+    return columns;
+  }, [shuffledLandscapes, shuffledPortraits, columnCount, imagesPerColumn]);
+
+  // Current column images state
+  const [columnImages, setColumnImages] = useState<CollageImage[][]>([]);
+
+  // Initialize and rotate images
   useEffect(() => {
-    if (columnQueues.length > 0 && rotationOffsets.length !== columnQueues.length) {
-      setRotationOffsets(Array(columnQueues.length).fill(0));
+    if (shuffledLandscapes.length === 0 && shuffledPortraits.length === 0) {
+      return;
     }
-  }, [columnQueues.length, rotationOffsets.length]);
 
-  // Rotate images every 20 seconds
-  useEffect(() => {
-    if (columnQueues.length === 0) return;
+    // Initial selection
+    const initialColumns = selectUniqueImages();
+    setColumnImages(initialColumns);
 
+    // Rotate every 30 seconds
     const id = setInterval(() => {
-      setRotationOffsets((prev) => {
-        // Always use latest columnQueues from ref to avoid stale closure
-        const currentQueues = columnQueuesRef.current;
-        if (currentQueues.length === 0) return prev;
-        
-        // Ensure prev array matches current column count
-        const adjustedPrev = prev.length >= currentQueues.length 
-          ? prev.slice(0, currentQueues.length)
-          : [...prev, ...Array(currentQueues.length - prev.length).fill(0)];
-        
-        return adjustedPrev.map((offset, idx) => {
-          const queue = currentQueues[idx];
-          if (!queue || queue.length === 0) return offset;
-          // Advance by 1 image, maintaining pattern
-          return (offset + 1) % queue.length;
-        });
-      });
-    }, 20000);
+      const newColumns = selectUniqueImages();
+      setColumnImages(newColumns);
+    }, 30000); // 30 seconds
 
     return () => clearInterval(id);
-  }, [columnQueues.length]); // Only depend on length to recreate interval when structure changes
+  }, [selectUniqueImages, shuffledLandscapes.length, shuffledPortraits.length]);
 
   // Get image URL from API
   function getImageUrl(key: string): string {
@@ -268,21 +299,7 @@ export default function ImageCollage() {
             }}
           >
             {Array.from({ length: columnCount }).map((_, colIdx) => {
-              const queue = columnQueues[colIdx] || [];
-              const offset = rotationOffsets[colIdx] || 0;
-
-              // Get images for this column based on current offset
-              // Display enough images to fill the column (typically 8-12 images)
-              // Use modulo arithmetic to wrap around without duplicates
-              const imagesToShow: CollageImage[] = [];
-              const imagesNeeded = 12;
-              
-              if (queue.length > 0) {
-                for (let i = 0; i < imagesNeeded; i++) {
-                  const index = (offset + i) % queue.length;
-                  imagesToShow.push(queue[index]);
-                }
-              }
+              const imagesToShow = columnImages[colIdx] || [];
 
               return (
                 <div
