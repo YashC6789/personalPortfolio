@@ -5,7 +5,7 @@ import { Storage } from '@google-cloud/storage';
 const storage = new Storage();
 
 const BUCKET_NAME = process.env.GCS_BUCKET || 'rotating_image_collage_bucket';
-const GCS_PREFIX = process.env.GCS_PREFIX || 'collage/';
+const GCS_PREFIX = process.env.GCS_PREFIX || ''; // Empty prefix - images are directly in landscape/ and vertical/
 
 // Cache of allowed keys from bucket listing (refreshed periodically)
 let manifestCache: Set<string> | null = null;

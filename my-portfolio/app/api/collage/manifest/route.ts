@@ -5,7 +5,7 @@ import { Storage } from '@google-cloud/storage';
 const storage = new Storage();
 
 const BUCKET_NAME = process.env.GCS_BUCKET || 'rotating_image_collage_bucket';
-const GCS_PREFIX = process.env.GCS_PREFIX || 'collage/';
+const GCS_PREFIX = process.env.GCS_PREFIX || ''; // Empty prefix - images are directly in landscape/ and vertical/
 
 interface CollageImage {
   key: string;
@@ -44,6 +44,18 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`[Manifest] Found ${files.length} files with prefix ${GCS_PREFIX}`);
+    
+    // Debug: Log first few file names to help diagnose path issues
+    if (files.length > 0) {
+      console.log(`[Manifest] Sample file names (first 5):`);
+      files.slice(0, 5).forEach((file, idx) => {
+        console.log(`  ${idx + 1}. ${file.name}`);
+      });
+    } else {
+      const prefixDisplay = GCS_PREFIX || '(root)';
+      console.warn(`[Manifest] No files found! Check that images are uploaded to: gs://${BUCKET_NAME}/${prefixDisplay}`);
+      console.warn(`[Manifest] Expected structure: gs://${BUCKET_NAME}/landscape/... and gs://${BUCKET_NAME}/vertical/...`);
+    }
 
     const manifest: CollageImage[] = [];
 
@@ -117,6 +129,15 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`[Manifest] Returning ${manifest.length} images in manifest`);
+    
+    // Debug: Log breakdown by orientation
+    if (manifest.length > 0) {
+      const landscapeCount = manifest.filter(img => img.orientation === 'landscape').length;
+      const portraitCount = manifest.filter(img => img.orientation === 'portrait').length;
+      console.log(`[Manifest] Breakdown: ${landscapeCount} landscape, ${portraitCount} portrait`);
+    } else if (files.length > 0) {
+      console.warn(`[Manifest] WARNING: Found ${files.length} files but manifest is empty! Files may be directories or failed to process.`);
+    }
 
     // Cache the manifest for 5 minutes
     return NextResponse.json(manifest, {
