@@ -11,8 +11,24 @@ interface CollageImage {
   updated?: string;
 }
 
-// Pattern: 3 landscape, 1 portrait, repeating
-const PATTERN = ["landscape", "landscape", "landscape", "portrait"] as const;
+/**
+ * Generates a random pattern for a column with 3 landscape and 1 portrait
+ * The portrait position is randomized based on seed
+ */
+function generateRandomPattern(seed: number): ("landscape" | "portrait")[] {
+  const pattern: ("landscape" | "portrait")[] = ["landscape", "landscape", "landscape", "portrait"];
+  
+  // Use seed to deterministically shuffle the portrait position
+  let random = seed;
+  random = (random * 9301 + 49297) % 233280;
+  const portraitPosition = Math.floor((random / 233280) * 4);
+  
+  // Move portrait to random position
+  const portrait = pattern.splice(3, 1)[0]; // Remove portrait from position 3
+  pattern.splice(portraitPosition, 0, portrait); // Insert at random position
+  
+  return pattern;
+}
 
 /**
  * Shuffles array deterministically based on seed
@@ -157,6 +173,8 @@ export default function ImageCollage() {
   }, [manifest]);
 
   // Build a global shuffled pool of images for no-duplicate selection
+  // Note: Images from landscape/ folder are landscape, images from vertical/ folder are portrait
+  // This is determined by the manifest API based on folder structure
   const shuffledLandscapes = useMemo(() => {
     return seededShuffle(landscapes, 12345);
   }, [landscapes]);
@@ -169,6 +187,7 @@ export default function ImageCollage() {
   // Track indices across rotations to progress through images
   const landscapeIdxRef = useRef(0);
   const portraitIdxRef = useRef(0);
+  const rotationCountRef = useRef(0); // Track rotation count for pattern variety
 
   // Function to select unique images for all columns (no duplicates across columns)
   const selectUniqueImages = useCallback((): CollageImage[][] => {
@@ -180,9 +199,14 @@ export default function ImageCollage() {
     for (let col = 0; col < columnCount; col++) {
       const column: CollageImage[] = [];
       
-      // Each column needs 3 landscape + 1 portrait
+      // Generate a random pattern for this column (portrait can be in any position)
+      // Use column index + rotation count as seed for variety across columns and rotations
+      // Each column gets a different pattern, and patterns change with each rotation
+      const pattern = generateRandomPattern(col * 1000 + rotationCountRef.current * 100);
+      
+      // Each column needs 3 landscape + 1 portrait in random order
       for (let i = 0; i < imagesPerColumn; i++) {
-        const requiredOrientation = PATTERN[i % PATTERN.length];
+        const requiredOrientation = pattern[i];
         let selected: CollageImage | null = null;
         let attempts = 0;
         const maxAttempts = Math.max(shuffledLandscapes.length, shuffledPortraits.length) * 2;
@@ -233,6 +257,7 @@ export default function ImageCollage() {
     // Update refs for next rotation
     landscapeIdxRef.current = landscapeIdx;
     portraitIdxRef.current = portraitIdx;
+    rotationCountRef.current += 1; // Increment rotation counter for pattern variety
 
     return columns;
   }, [shuffledLandscapes, shuffledPortraits, columnCount, imagesPerColumn]);

@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
           const cleanKeyLower = cleanKey.toLowerCase();
           
           // Check folder structure first (most reliable)
+          // IMPORTANT: Files in vertical/ folder are portrait, files in landscape/ folder are landscape
           if (cleanKeyLower.includes('/vertical/') || cleanKeyLower.includes('/vert/') || cleanKeyLower.startsWith('vertical/')) {
             orientation = 'portrait';
           } else if (cleanKeyLower.includes('/landscape/') || cleanKeyLower.includes('/land/') || cleanKeyLower.startsWith('landscape/')) {
@@ -110,6 +111,18 @@ export async function GET(request: NextRequest) {
             orientation = 'landscape';
           }
           // Default is already 'landscape' set above
+          
+          // Log if orientation doesn't match folder (for debugging)
+          if (process.env.NODE_ENV !== 'production') {
+            const inVerticalFolder = cleanKeyLower.includes('/vertical/') || cleanKeyLower.startsWith('vertical/');
+            const inLandscapeFolder = cleanKeyLower.includes('/landscape/') || cleanKeyLower.startsWith('landscape/');
+            if (inVerticalFolder && orientation !== 'portrait') {
+              console.warn(`[Manifest] File in vertical/ folder but detected as ${orientation}: ${file.name}`);
+            }
+            if (inLandscapeFolder && orientation !== 'landscape') {
+              console.warn(`[Manifest] File in landscape/ folder but detected as ${orientation}: ${file.name}`);
+            }
+          }
         }
 
         manifest.push({
