@@ -1,0 +1,17 @@
+{
+  "name": "Yashkaran Chauhan Portfolio",
+  "short_name": "YC Portfolio",
+  "description": "Software engineer portfolio showcasing projects, blog posts, and professional experience",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
+}
