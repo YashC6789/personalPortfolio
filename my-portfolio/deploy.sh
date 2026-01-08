@@ -52,3 +52,4 @@ echo -e "${BLUE}Or if you have a custom domain:${NC}"
 echo -e "${BLUE}https://${BUCKET_NAME}.storage.googleapis.com${NC}"
 
 
+

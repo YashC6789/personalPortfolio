@@ -35,3 +35,4 @@ echo -e "${GREEN}Deployment complete!${NC}"
 echo -e "${GREEN}Your app URL:${NC}"
 gcloud app browse --project="$PROJECT_ID"
 
+

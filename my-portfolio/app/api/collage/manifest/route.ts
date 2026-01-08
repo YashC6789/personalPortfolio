@@ -51,8 +51,12 @@ export async function GET(request: NextRequest) {
         orientation = metadata.metadata.orientation as 'landscape' | 'portrait';
       } else if (metadata.metadata?.width && metadata.metadata?.height) {
         // Derive from dimensions if available
-        const width = parseInt(metadata.metadata.width, 10);
-        const height = parseInt(metadata.metadata.height, 10);
+        const width = typeof metadata.metadata.width === 'number'
+          ? metadata.metadata.width
+          : parseInt(String(metadata.metadata.width), 10);
+        const height = typeof metadata.metadata.height === 'number'
+          ? metadata.metadata.height
+          : parseInt(String(metadata.metadata.height), 10);
         orientation = width > height ? 'landscape' : 'portrait';
       } else {
         // Fallback: check filename patterns
@@ -71,7 +75,9 @@ export async function GET(request: NextRequest) {
         key,
         orientation,
         contentType: metadata.contentType,
-        size: parseInt(metadata.size || '0', 10),
+        size: typeof metadata.size === 'number'
+          ? metadata.size
+          : parseInt(String(metadata.size || '0'), 10),
         updated: metadata.updated,
       });
     }
@@ -91,4 +97,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 

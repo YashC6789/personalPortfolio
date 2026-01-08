@@ -118,3 +118,4 @@ echo -e "  View logs: ${BLUE}gcloud builds log BUILD_ID${NC}"
 echo -e "  Open console: ${BLUE}https://console.cloud.google.com/cloud-build/builds?project=${PROJECT_ID}${NC}"
 echo ""
 
+

@@ -75,3 +75,4 @@ echo -e "${GREEN}Permission setup complete!${NC}"
 echo -e "${YELLOW}Note: If you're not a project owner, you may need to ask a project owner to grant these roles.${NC}"
 echo -e "${YELLOW}Alternatively, you can grant yourself the 'Owner' role if you have access.${NC}"
 
+
