@@ -44,67 +44,6 @@ function seededShuffle<T>(array: T[], seed: number): T[] {
   return shuffled;
 }
 
-/**
- * Builds a column queue following 3:1 landscape-to-portrait pattern
- */
-function buildColumnQueue(
-  landscapes: CollageImage[],
-  portraits: CollageImage[],
-  columnIndex: number
-): CollageImage[] {
-  // Use column index as seed for deterministic shuffling
-  const seededLandscapes = seededShuffle(landscapes, columnIndex * 1000);
-  const seededPortraits = seededShuffle(portraits, columnIndex * 2000);
-
-  const queue: CollageImage[] = [];
-  let landscapeIdx = 0;
-  let portraitIdx = 0;
-
-  // If one orientation is missing, we'll use only the available one
-  const hasLandscapes = seededLandscapes.length > 0;
-  const hasPortraits = seededPortraits.length > 0;
-
-  // If both are missing, return empty queue
-  if (!hasLandscapes && !hasPortraits) {
-    return queue;
-  }
-
-  // If only one orientation is available, fill queue with that
-  if (!hasPortraits) {
-    // Only landscapes available - fill queue with landscapes
-    for (let i = 0; i < Math.min(100, seededLandscapes.length * 3); i++) {
-      queue.push(seededLandscapes[landscapeIdx % seededLandscapes.length]);
-      landscapeIdx++;
-    }
-    return queue;
-  }
-
-  if (!hasLandscapes) {
-    // Only portraits available - fill queue with portraits
-    for (let i = 0; i < Math.min(100, seededPortraits.length * 3); i++) {
-      queue.push(seededPortraits[portraitIdx % seededPortraits.length]);
-      portraitIdx++;
-    }
-    return queue;
-  }
-
-  // Both orientations available - follow 3:1 pattern
-  for (let i = 0; i < 100; i++) {
-    // Cycle through pattern
-    const requiredOrientation = PATTERN[i % PATTERN.length];
-
-    if (requiredOrientation === "landscape") {
-      queue.push(seededLandscapes[landscapeIdx % seededLandscapes.length]);
-      landscapeIdx++;
-    } else {
-      queue.push(seededPortraits[portraitIdx % seededPortraits.length]);
-      portraitIdx++;
-    }
-  }
-
-  return queue;
-}
-
 export default function ImageCollage() {
   const [manifest, setManifest] = useState<CollageImage[]>([]);
   const [loading, setLoading] = useState(true);
