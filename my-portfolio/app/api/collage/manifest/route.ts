@@ -22,7 +22,19 @@ interface CollageImage {
  */
 export async function GET(request: NextRequest) {
   try {
+    console.log(`[Manifest] Fetching from bucket: ${BUCKET_NAME}, prefix: ${GCS_PREFIX}`);
+    
     const bucket = storage.bucket(BUCKET_NAME);
+    
+    // Check if bucket exists
+    const [bucketExists] = await bucket.exists();
+    if (!bucketExists) {
+      console.error(`[Manifest] Bucket ${BUCKET_NAME} does not exist`);
+      return NextResponse.json(
+        { error: `Bucket ${BUCKET_NAME} does not exist` },
+        { status: 404 }
+      );
+    }
     
     // List objects under the prefix
     const [files] = await bucket.getFiles({
@@ -30,6 +42,8 @@ export async function GET(request: NextRequest) {
       // Limit to reasonable number to avoid huge manifests
       maxResults: 1000,
     });
+
+    console.log(`[Manifest] Found ${files.length} files with prefix ${GCS_PREFIX}`);
 
     const manifest: CollageImage[] = [];
 
@@ -39,8 +53,9 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Get metadata to determine orientation and other properties
-      const [metadata] = await file.getMetadata();
+      try {
+        // Get metadata to determine orientation and other properties
+        const [metadata] = await file.getMetadata();
       
       // Determine orientation from metadata or filename
       // You can store custom metadata with 'orientation' field, or derive from dimensions
@@ -71,16 +86,23 @@ export async function GET(request: NextRequest) {
         ? file.name.slice(GCS_PREFIX.length)
         : file.name;
 
-      manifest.push({
-        key,
-        orientation,
-        contentType: metadata.contentType,
-        size: typeof metadata.size === 'number'
-          ? metadata.size
-          : parseInt(String(metadata.size || '0'), 10),
-        updated: metadata.updated,
-      });
+        manifest.push({
+          key,
+          orientation,
+          contentType: metadata.contentType,
+          size: typeof metadata.size === 'number'
+            ? metadata.size
+            : parseInt(String(metadata.size || '0'), 10),
+          updated: metadata.updated,
+        });
+      } catch (fileError) {
+        console.error(`[Manifest] Error processing file ${file.name}:`, fileError);
+        // Continue with next file instead of failing entirely
+        continue;
+      }
     }
+
+    console.log(`[Manifest] Returning ${manifest.length} images in manifest`);
 
     // Cache the manifest for 5 minutes
     return NextResponse.json(manifest, {
@@ -90,11 +112,16 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching collage manifest:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch collage manifest' },
-      { status: 500 }
-    );
+    console.error('[Manifest] Error fetching collage manifest:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorDetails = {
+      error: 'Failed to fetch collage manifest',
+      message: errorMessage,
+      bucket: BUCKET_NAME,
+      prefix: GCS_PREFIX,
+    };
+    console.error('[Manifest] Error details:', errorDetails);
+    return NextResponse.json(errorDetails, { status: 500 });
   }
 }
 

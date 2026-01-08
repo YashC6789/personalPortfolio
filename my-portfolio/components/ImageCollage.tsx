@@ -106,15 +106,32 @@ export default function ImageCollage() {
     async function fetchManifest() {
       try {
         const response = await fetch("/api/collage/manifest");
-        if (!response.ok) {
-          throw new Error("Failed to fetch manifest");
-        }
         const data = await response.json();
+        
+        if (!response.ok) {
+          // API returned an error response
+          const errorMsg = data.error || data.message || "Failed to fetch manifest";
+          console.error("Manifest API error:", data);
+          setError(errorMsg);
+          setManifest([]);
+          return;
+        }
+        
+        // Check if data is an array
+        if (!Array.isArray(data)) {
+          console.error("Manifest API returned non-array:", data);
+          setError("Invalid manifest format");
+          setManifest([]);
+          return;
+        }
+        
+        console.log(`Loaded ${data.length} images from manifest`);
         setManifest(data);
         setError(null);
       } catch (err) {
         console.error("Error fetching manifest:", err);
-        setError("Failed to load images");
+        setError(err instanceof Error ? err.message : "Failed to load images");
+        setManifest([]);
       } finally {
         setLoading(false);
       }
