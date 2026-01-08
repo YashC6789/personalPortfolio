@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Google Cloud Storage Deployment Script for Next.js Static Site
-# Usage: ./deploy.sh [BUCKET_NAME] [PROJECT_ID]
+# Usage: ./scripts/deploy.sh [BUCKET_NAME] [PROJECT_ID]
 
 set -e
 

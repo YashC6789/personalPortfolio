@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to set up automatic deployment from GitHub to Cloud Run
-# Usage: ./setup-github-trigger.sh [PROJECT_ID] [SERVICE_NAME] [REGION] [REPO_NAME] [BRANCH]
+# Usage: ./scripts/setup-github-trigger.sh [PROJECT_ID] [SERVICE_NAME] [REGION] [REPO_NAME] [BRANCH]
 
 # Don't exit on error - we want to show helpful messages
 set +e

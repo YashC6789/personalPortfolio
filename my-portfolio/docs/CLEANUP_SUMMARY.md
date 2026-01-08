@@ -48,23 +48,33 @@ The following directories/files are properly excluded:
 - `.next/` - Next.js build cache (excluded from git, docker, and gcloud)
 - `node_modules/` - Dependencies (excluded from all)
 
-## Deployment Files
+## Repository Organization
 
-The following files are included in git but excluded from Docker/Cloud builds:
+The repository has been organized into clear directories:
+
+### Scripts (`scripts/`)
+All deployment and setup scripts are now in the `scripts/` directory:
 - `deploy.sh` - Cloud Storage deployment script
 - `deploy-cloud-run.sh` - Cloud Run deployment script
 - `deploy-app-engine.sh` - App Engine deployment script
 - `setup-permissions.sh` - Permission setup script
 - `setup-github-trigger.sh` - GitHub trigger setup script
-- `app.yaml` - App Engine configuration
+- `setup-collage-iam.sh` - Image collage IAM setup script
+- `check-deployment.sh` - Deployment verification script
+
+### Documentation (`docs/`)
+All documentation files are now in the `docs/` directory:
+- `DEPLOYMENT.md` - Complete deployment guide
+- `GITHUB_SETUP.md` - GitHub CI/CD setup guide
+- `COLLAGE_SETUP.md` - Image collage setup guide
+- `README_COLLAGE.md` - Image collage quick start
+- `IMPLEMENTATION_SUMMARY.md` - Technical implementation details
+- `CLEANUP_SUMMARY.md` - This file
+
+### Root Files
+- `README.md` - Main project README
 - `cloudbuild.yaml` - Cloud Build configuration (needed for GitHub triggers)
-
-## Documentation Files
-
-- `README.md` - Excluded from Docker/Cloud builds
-- `DEPLOYMENT.md` - Excluded from Docker/Cloud builds
-- `GITHUB_SETUP.md` - Included (may be useful reference)
-- `CLEANUP_SUMMARY.md` - This file (excluded from builds)
+- `Dockerfile` - Docker image configuration
 
 ## Next Steps
 
@@ -74,4 +84,5 @@ The following files are included in git but excluded from Docker/Cloud builds:
 4. ✅ Ready for deployment
 
 The project structure is now clean and all paths are correct!
+
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Quick deployment status checker
-# Usage: ./check-deployment.sh [SERVICE_NAME] [REGION] [PROJECT_ID]
+# Usage: ./scripts/check-deployment.sh [SERVICE_NAME] [REGION] [PROJECT_ID]
 
 set +e
 
@@ -21,7 +21,7 @@ if [ -z "$PROJECT_ID" ]; then
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
     if [ -z "$PROJECT_ID" ]; then
         echo -e "${RED}Error: No project ID provided or set${NC}"
-        echo "Usage: ./check-deployment.sh [SERVICE_NAME] [REGION] [PROJECT_ID]"
+        echo "Usage: ./scripts/check-deployment.sh [SERVICE_NAME] [REGION] [PROJECT_ID]"
         exit 1
     fi
 fi

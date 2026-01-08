@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Google App Engine Deployment Script for Next.js
-# Usage: ./deploy-app-engine.sh [PROJECT_ID]
+# Usage: ./scripts/deploy-app-engine.sh [PROJECT_ID]
 
 set -e
 

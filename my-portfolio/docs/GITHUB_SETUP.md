@@ -73,19 +73,19 @@ When you push to your configured branch:
 
 ### Permission errors
 - Ensure Cloud Build has permission to deploy to Cloud Run
-- Run: `./setup-permissions.sh YOUR_PROJECT_ID`
+- Run: `./scripts/setup-permissions.sh YOUR_PROJECT_ID`
 
 ## Alternative: Using the Script
 
 You can also try the automated script (after connecting the repository):
 
 ```bash
-./setup-github-trigger.sh PROJECT_ID SERVICE_NAME REGION REPO_NAME BRANCH
+./scripts/setup-github-trigger.sh PROJECT_ID SERVICE_NAME REGION REPO_NAME BRANCH
 ```
 
 Example:
 ```bash
-./setup-github-trigger.sh burnished-edge-481720-j3 portfolio us-central1 yashc/personalPortfolio main
+./scripts/setup-github-trigger.sh burnished-edge-481720-j3 portfolio us-central1 yashc/personalPortfolio main
 ```
 
 ## Monitor Your Deployments

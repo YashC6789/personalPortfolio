@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to grant necessary IAM permissions for Cloud Run deployment
-# Usage: ./setup-permissions.sh [PROJECT_ID] [EMAIL]
+# Usage: ./scripts/setup-permissions.sh [PROJECT_ID] [EMAIL]
 
 set -e
 

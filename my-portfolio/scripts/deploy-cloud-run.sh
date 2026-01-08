@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Google Cloud Run Deployment Script for Next.js Dynamic Site
-# Usage: ./deploy-cloud-run.sh [SERVICE_NAME] [PROJECT_ID] [REGION]
+# Usage: ./scripts/deploy-cloud-run.sh [SERVICE_NAME] [PROJECT_ID] [REGION]
 
 set -e
 
@@ -59,13 +59,13 @@ echo -e "${YELLOW}Note: If you get permission errors, you may need to grant your
 echo -e "${YELLOW}  - Cloud Build Editor (roles/cloudbuild.builds.editor)${NC}"
 echo -e "${YELLOW}  - Service Account User (roles/iam.serviceAccountUser)${NC}"
 echo -e "${YELLOW}  - Cloud Run Admin (roles/run.admin)${NC}"
-echo -e "${YELLOW}Run: ./setup-permissions.sh ${PROJECT_ID}${NC}"
+echo -e "${YELLOW}Run: ./scripts/setup-permissions.sh ${PROJECT_ID}${NC}"
 echo ""
 
 echo -e "${BLUE}Building Docker image (using lowercase name: ${IMAGE_NAME})...${NC}"
 if ! gcloud builds submit --tag gcr.io/${PROJECT_ID}/${IMAGE_NAME}; then
     echo -e "${RED}Build failed! This is likely a permissions issue.${NC}"
-    echo -e "${YELLOW}Try running: ./setup-permissions.sh ${PROJECT_ID}${NC}"
+    echo -e "${YELLOW}Try running: ./scripts/setup-permissions.sh ${PROJECT_ID}${NC}"
     echo -e "${YELLOW}Or grant yourself the 'Owner' role in the Google Cloud Console:${NC}"
     echo -e "${YELLOW}  https://console.cloud.google.com/iam-admin/iam?project=${PROJECT_ID}${NC}"
     exit 1

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to set up IAM permissions for the image collage feature
-# Usage: ./setup-collage-iam.sh [PROJECT_ID] [SERVICE_NAME] [REGION] [BUCKET_NAME]
+# Usage: ./scripts/setup-collage-iam.sh [PROJECT_ID] [SERVICE_NAME] [REGION] [BUCKET_NAME]
 
 set -e
 
@@ -22,7 +22,7 @@ if [ -z "$PROJECT_ID" ]; then
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
     if [ -z "$PROJECT_ID" ]; then
         echo -e "${RED}Error: No project ID provided or set${NC}"
-        echo "Usage: ./setup-collage-iam.sh [PROJECT_ID] [SERVICE_NAME] [REGION] [BUCKET_NAME]"
+        echo "Usage: ./scripts/setup-collage-iam.sh [PROJECT_ID] [SERVICE_NAME] [REGION] [BUCKET_NAME]"
         exit 1
     fi
 fi

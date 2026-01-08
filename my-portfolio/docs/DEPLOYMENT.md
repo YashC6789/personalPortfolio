@@ -30,15 +30,15 @@ gcloud config set project YOUR_PROJECT_ID
 Make the deployment script executable and run it:
 
 ```bash
-chmod +x deploy-cloud-run.sh
-./deploy-cloud-run.sh SERVICE_NAME PROJECT_ID REGION
+chmod +x scripts/deploy-cloud-run.sh
+./scripts/deploy-cloud-run.sh SERVICE_NAME PROJECT_ID REGION
 ```
 
 Or run it interactively (it will prompt for values):
 
 ```bash
-chmod +x deploy-cloud-run.sh
-./deploy-cloud-run.sh
+chmod +x scripts/deploy-cloud-run.sh
+./scripts/deploy-cloud-run.sh
 ```
 
 **Parameters:**
@@ -91,7 +91,7 @@ gcloud run services describe SERVICE_NAME --region REGION --format 'value(status
 
 To update your site, simply run the deployment script again:
 ```bash
-./deploy-cloud-run.sh SERVICE_NAME PROJECT_ID REGION
+./scripts/deploy-cloud-run.sh SERVICE_NAME PROJECT_ID REGION
 ```
 
 #### Automatic Updates from GitHub (CI/CD)
@@ -101,13 +101,13 @@ Set up automatic deployment so that every push to your GitHub repository automat
 **Quick Setup:**
 
 ```bash
-chmod +x setup-github-trigger.sh
-./setup-github-trigger.sh PROJECT_ID SERVICE_NAME REGION REPO_NAME BRANCH
+chmod +x scripts/setup-github-trigger.sh
+./scripts/setup-github-trigger.sh PROJECT_ID SERVICE_NAME REGION REPO_NAME BRANCH
 ```
 
 **Example:**
 ```bash
-./setup-github-trigger.sh burnished-edge-481720-j3 portfolio us-central1 yashc/personalPortfolio main
+./scripts/setup-github-trigger.sh burnished-edge-481720-j3 portfolio us-central1 yashc/personalPortfolio main
 ```
 
 **Parameters:**
@@ -268,14 +268,14 @@ Your bucket name must be globally unique. Common patterns:
 Make the deployment script executable and run it:
 
 ```bash
-chmod +x deploy.sh
-./deploy.sh YOUR_BUCKET_NAME YOUR_PROJECT_ID
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh YOUR_BUCKET_NAME YOUR_PROJECT_ID
 ```
 
 Or run it interactively (it will prompt for values):
 
 ```bash
-./deploy.sh
+./scripts/deploy.sh
 ```
 
 #### 5. Manual Deployment (Alternative)
@@ -359,8 +359,8 @@ If you see `PERMISSION_DENIED` errors when running `gcloud builds submit`, you n
 #### Quick Fix: Run the Setup Script
 
 ```bash
-chmod +x setup-permissions.sh
-./setup-permissions.sh YOUR_PROJECT_ID
+chmod +x scripts/setup-permissions.sh
+./scripts/setup-permissions.sh YOUR_PROJECT_ID
 ```
 
 This will grant you the following roles:
