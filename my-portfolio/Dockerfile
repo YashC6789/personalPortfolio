@@ -22,6 +22,11 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# NEXT_PUBLIC_* vars are inlined at build time, so the canonical site URL used
+# in metadata / OpenGraph / RSS must be present during `npm run build`.
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+
 RUN npm run build
 
 # Production image, copy all the files and run next
