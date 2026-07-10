@@ -157,7 +157,19 @@ function buildFrontmatter({ title, description, date, tags, slug }) {
 function indexVault(vaultPath) {
   const byBasename = new Map(); // basename -> [fullPath, ...]
   const walk = (dir) => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (err) {
+      // Skip folders we can't read (permissions, broken symlinks) rather than
+      // aborting the whole publish.
+      if (err.code === "EACCES" || err.code === "EPERM") {
+        warn(`Skipping unreadable folder: ${dir}`);
+        return;
+      }
+      throw err;
+    }
+    for (const entry of entries) {
       if (entry.name.startsWith(".")) continue; // skip .obsidian, .trash, etc.
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
@@ -169,6 +181,16 @@ function indexVault(vaultPath) {
       }
     }
   };
+  try {
+    fs.accessSync(vaultPath, fs.constants.R_OK);
+  } catch {
+    fail(
+      `Can't read the vault at:\n    ${vaultPath}\n\n` +
+        "  If it's in iCloud (Library/Mobile Documents), macOS is blocking access.\n" +
+        "  Run this from the Terminal app and allow the access prompt, or grant\n" +
+        "  your terminal Full Disk Access in System Settings → Privacy & Security."
+    );
+  }
   walk(vaultPath);
   return byBasename;
 }
