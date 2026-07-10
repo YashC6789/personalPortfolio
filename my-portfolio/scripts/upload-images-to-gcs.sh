@@ -15,7 +15,7 @@ NC='\033[0m'
 # Get parameters
 PROJECT_ID=${1:-""}
 BUCKET_NAME=${2:-"rotating_image_collage_bucket"}
-GCS_PREFIX="collage/"
+GCS_PREFIX=""  # Empty prefix - images go directly in landscape/ and vertical/
 
 if [ -z "$PROJECT_ID" ]; then
     PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
@@ -62,13 +62,14 @@ echo ""
 echo -e "${BLUE}Uploading landscape images...${NC}"
 if [ -d "$IMAGES_DIR/landscape" ]; then
     # Upload landscape images with orientation metadata
+    # Note: If GCS_PREFIX is empty, images go to gs://bucket/landscape/
     gsutil -m -h "x-goog-meta-orientation:landscape" \
         cp "$IMAGES_DIR/landscape"/* \
         "gs://${BUCKET_NAME}/${GCS_PREFIX}landscape/" 2>/dev/null || {
         echo -e "${YELLOW}Note: Some files may have failed to upload${NC}"
     }
     LANDSCAPE_COUNT=$(ls -1 "$IMAGES_DIR/landscape" 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "${GREEN}✓ Uploaded ${LANDSCAPE_COUNT} landscape images${NC}"
+    echo -e "${GREEN}✓ Uploaded ${LANDSCAPE_COUNT} landscape images to gs://${BUCKET_NAME}/landscape/${NC}"
 else
     echo -e "${YELLOW}⚠ No landscape directory found${NC}"
 fi
@@ -77,13 +78,14 @@ echo ""
 echo -e "${BLUE}Uploading vertical/portrait images...${NC}"
 if [ -d "$IMAGES_DIR/vertical" ]; then
     # Upload vertical images with orientation metadata
+    # Note: If GCS_PREFIX is empty, images go to gs://bucket/vertical/
     gsutil -m -h "x-goog-meta-orientation:portrait" \
         cp "$IMAGES_DIR/vertical"/* \
         "gs://${BUCKET_NAME}/${GCS_PREFIX}vertical/" 2>/dev/null || {
         echo -e "${YELLOW}Note: Some files may have failed to upload${NC}"
     }
     VERTICAL_COUNT=$(ls -1 "$IMAGES_DIR/vertical" 2>/dev/null | wc -l | tr -d ' ')
-    echo -e "${GREEN}✓ Uploaded ${VERTICAL_COUNT} vertical images${NC}"
+    echo -e "${GREEN}✓ Uploaded ${VERTICAL_COUNT} vertical images to gs://${BUCKET_NAME}/vertical/${NC}"
 else
     echo -e "${YELLOW}⚠ No vertical directory found${NC}"
 fi
@@ -94,8 +96,13 @@ echo -e "${GREEN}  Upload Complete!${NC}"
 echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "${BLUE}Images are now available at:${NC}"
-echo -e "  gs://${BUCKET_NAME}/${GCS_PREFIX}landscape/"
-echo -e "  gs://${BUCKET_NAME}/${GCS_PREFIX}vertical/"
+if [ -z "$GCS_PREFIX" ]; then
+    echo -e "  gs://${BUCKET_NAME}/landscape/"
+    echo -e "  gs://${BUCKET_NAME}/vertical/"
+else
+    echo -e "  gs://${BUCKET_NAME}/${GCS_PREFIX}landscape/"
+    echo -e "  gs://${BUCKET_NAME}/${GCS_PREFIX}vertical/"
+fi
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo "1. Grant IAM permissions to Cloud Run service account:"

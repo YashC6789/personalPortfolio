@@ -6,6 +6,12 @@ This guide will help you set up the image collage feature with your existing ima
 
 ### Step 1: Upload Images to GCS
 
+**⚠️ IMPORTANT: Images must be under the `collage/` prefix!**
+
+The correct structure is:
+- `gs://BUCKET_NAME/collage/landscape/` (not `gs://BUCKET_NAME/landscape/`)
+- `gs://BUCKET_NAME/collage/vertical/` (not `gs://BUCKET_NAME/vertical/`)
+
 Run the upload script to migrate your images from `public/me/` to Google Cloud Storage:
 
 ```bash
@@ -22,6 +28,13 @@ This script will:
 - Upload all images from `public/me/landscape/` to `gs://BUCKET_NAME/collage/landscape/`
 - Upload all images from `public/me/vertical/` to `gs://BUCKET_NAME/collage/vertical/`
 - Set orientation metadata automatically
+
+**If you already uploaded images to the wrong location**, you can move them:
+```bash
+# Move from wrong location to correct location
+gsutil -m mv gs://BUCKET_NAME/landscape/* gs://BUCKET_NAME/collage/landscape/
+gsutil -m mv gs://BUCKET_NAME/vertical/* gs://BUCKET_NAME/collage/vertical/
+```
 
 ### Step 2: Grant IAM Permissions
 
@@ -50,14 +63,26 @@ Or push to GitHub if you have CI/CD set up - it will deploy automatically.
 
 ### Check Images in Bucket
 
+**Quick verification script:**
 ```bash
-# List all images
+./scripts/verify-bucket-structure.sh PROJECT_ID [BUCKET_NAME]
+```
+
+**Manual verification:**
+```bash
+# List all images (should show files under collage/ prefix)
 gsutil ls gs://rotating_image_collage_bucket/collage/**
 
 # Count images
 gsutil ls gs://rotating_image_collage_bucket/collage/landscape/** | wc -l
 gsutil ls gs://rotating_image_collage_bucket/collage/vertical/** | wc -l
+
+# Verify structure (should show files like):
+# gs://bucket/collage/landscape/land1.JPG
+# gs://bucket/collage/vertical/vert1.jpg
 ```
+
+**⚠️ Common mistake:** If you see files like `gs://bucket/landscape/...` (without `collage/`), they're in the wrong location!
 
 ### Test API Locally
 
