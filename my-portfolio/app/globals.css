@@ -1,71 +1,211 @@
 @import "tailwindcss";
 
-/* iPhone-style portrait aspect ratio: 3:4 */
-.portrait-card {
-    aspect-ratio: 3 / 4;
-}
+/* Dark mode is driven by a data-theme attribute set on <html> (see the inline
+   script in layout.tsx). This wires Tailwind's `dark:` variant to it. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* app/globals.css – somewhere after @import "tailwindcss"; */
-.mosaic-rect {
-    aspect-ratio: 16 / 9;  /* nice landscape rectangle */
-  }
-
-/* ---------- LIGHT MODE (default) ---------- */
+/* ============================================================
+   Warm & earthy palette
+   ============================================================ */
 :root {
-  --background: #f5f7f6;  /* soft mist gray */
-  --foreground: #1c1c1e;  /* deep charcoal */
+  /* Surfaces */
+  --background: #faf6f0; /* warm paper */
+  --surface: #f1e9de; /* soft sand */
+  --surface-2: #ece2d4; /* deeper sand for insets */
 
-  /* Brand palette */
-  --brand: #3baf7a;       /* soft emerald */
-  --brand-dark: #2e8a63;  /* deeper pine green */
+  /* Text */
+  --foreground: #2b2420; /* espresso */
+  --ink-subtle: #6e6258; /* warm gray */
 
-  /* Accent + subtle text */
-  --accent: #e9dcc5;      /* warm sand */
-  --ink-subtle: #4b4b4f;  /* muted gray */
+  /* Brand — terracotta / clay */
+  --brand: #c05f33; /* decorative + large text */
+  --brand-strong: #9a4a26; /* text-safe on light (AA) + hover */
+  --brand-dark: #9a4a26;
+
+  /* Accent — muted amber */
+  --accent: #c9902f; /* text-safe amber on light */
+  --accent-soft: #e7c06a; /* decorative amber */
+
+  /* Borders / rings derived from foreground */
+  --border: rgba(43, 36, 32, 0.1);
+  --border-strong: rgba(43, 36, 32, 0.16);
 }
 
-/* ---------- DARK MODE: medium-gray palette ---------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1f1f23;     /* medium-dark gray */
-    --foreground: #e5e5e7;     /* soft light gray */
-    --ink-subtle: #a1a1a6;     /* gentle muted gray for subtitles */
+[data-theme="dark"] {
+  --background: #1c1815; /* warm brown-charcoal */
+  --surface: #262019; /* raised warm gray */
+  --surface-2: #2f2820;
 
-    /* Optional: slightly cooler accent in dark mode */
-    --accent: #3a3a3d;
-  }
+  --foreground: #ede5db; /* warm off-white */
+  --ink-subtle: #a89a8c; /* warm muted gray */
+
+  --brand: #e07b4f; /* glowing clay */
+  --brand-strong: #e89068; /* text-safe on dark */
+  --brand-dark: #c05f33;
+
+  --accent: #e3b460;
+  --accent-soft: #e3b460;
+
+  --border: rgba(237, 229, 219, 0.12);
+  --border-strong: rgba(237, 229, 219, 0.2);
 }
 
-/* ---------- Tailwind v4 theme tokens ---------- */
+/* ============================================================
+   Tailwind v4 theme tokens
+   ============================================================ */
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
-  --color-brand: var(--brand);
-  --color-brand-dark: var(--brand-dark);
-  --color-accent: var(--accent);
   --color-ink-subtle: var(--ink-subtle);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-dark: var(--brand-dark);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+
+  /* Radius scale */
+  --radius-card: 1.5rem;
+  --radius-feature: 2rem;
+
+  /* Soft layered shadows */
+  --shadow-soft: 0 1px 2px rgba(43, 36, 32, 0.06),
+    0 8px 24px rgba(43, 36, 32, 0.08);
+  --shadow-lift: 0 2px 4px rgba(43, 36, 32, 0.08),
+    0 16px 40px rgba(43, 36, 32, 0.12);
 }
 
-/* ---------- Global styles ---------- */
+/* ============================================================
+   Base
+   ============================================================ */
+html {
+  scroll-behavior: smooth;
+  /* Offset in-page anchors below the fixed nav */
+  scroll-padding-top: 6rem;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Smooth theme switching */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* iPhone-style portrait aspect ratio helpers (kept for compatibility) */
+.portrait-card {
+  aspect-ratio: 3 / 4;
+}
+.mosaic-rect {
+  aspect-ratio: 16 / 9;
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
 @keyframes pop-in {
-    0% {
-      transform: scale(0.9) translateY(10px);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-    }
+  0% {
+    transform: scale(0.96) translateY(8px);
+    opacity: 0;
   }
-  
-  .pop-in {
-    animation: pop-in 0.25s ease-out;
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
   }
+}
+
+.pop-in {
+  animation: pop-in 0.25s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+/* Respect reduced-motion globally */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Prettier reading typography for blog post bodies */
+.prose-body {
+  color: var(--foreground);
+  line-height: 1.75;
+  font-size: 1.05rem;
+}
+.prose-body p {
+  margin-bottom: 1.25rem;
+}
+.prose-body h1 {
+  font-family: var(--font-fraunces), serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin: 2.25rem 0 0.75rem;
+}
+.prose-body h2 {
+  font-family: var(--font-fraunces), serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+}
+.prose-body h3 {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.prose-body h4 {
+  font-weight: 600;
+  margin: 1.25rem 0 0.4rem;
+}
+.prose-body ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.prose-body ol {
+  margin-bottom: 1.25rem;
+}
+.prose-body li {
+  margin-bottom: 0.4rem;
+}
+.prose-body a {
+  color: var(--brand-strong);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-body strong {
+  font-weight: 600;
+}
+.prose-body pre {
+  white-space: pre;
+}
+.prose-body pre code {
+  white-space: pre;
+}

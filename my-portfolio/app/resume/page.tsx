@@ -1,65 +1,93 @@
-// app/resume/page.tsx
+import type { Metadata } from "next";
+import { site } from "@/data/site";
+import { Container } from "@/components/ui/Section";
+import { Eyebrow } from "@/components/ui/Section";
+
+export const metadata: Metadata = {
+  title: "Resume",
+  description: "View and download Yashkaran Chauhan's resume.",
+};
 
 export default function ResumePage() {
-    return (
-      <main className="min-h-screen bg-background text-foreground pt-28 px-4 md:px-8">
-        <section className="max-w-5xl mx-auto mb-4 flex items-baseline justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Resume</h1>
-            <p className="text-sm text-ink-subtle">
-              View a PDF version of my resume. You can scroll, zoom, or download it below.
+  return (
+    <main className="pt-32 md:pt-40 pb-8">
+      <Container>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <Eyebrow>Resume</Eyebrow>
+            <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
+              A quick look at my experience.
+            </h1>
+            <p className="max-w-xl text-sm text-ink-subtle">
+              Scroll or zoom the preview below, or open the full PDF in a new
+              tab.
             </p>
           </div>
-  
+
           <a
-            href="/resume.pdf"
+            href={site.resumePath}
             target="_blank"
             rel="noopener noreferrer"
             className="
-              inline-flex items-center justify-center
-              rounded-full px-4 py-2 text-xs md:text-sm font-medium
-              bg-brand text-white
-              hover:bg-brand-dark
-              transition
+              inline-flex shrink-0 items-center justify-center gap-2
+              rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white
+              shadow-soft hover:bg-brand-dark hover:scale-[1.02] transition-all
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50
             "
           >
-            Open in new tab
+            Open PDF
           </a>
-        </section>
-  
-        <section className="max-w-5xl mx-auto">
+        </div>
+
+        {/* Desktop / tablet: embedded preview */}
+        <div className="hidden sm:block">
           <div
-            className="
-              w-full
-              rounded-2xl
-              border border-[--foreground]/10
-              bg-[--background]/60
-              shadow-lg
-              overflow-hidden
-            "
-            style={{ minHeight: "70vh" }}
+            className="w-full overflow-hidden rounded-[var(--radius-feature)] border border-border-strong bg-surface shadow-soft"
+            style={{ minHeight: "75vh" }}
           >
-            {/* Embedded PDF */}
             <iframe
-              src="/resume.pdf"
-              className="w-full h-full"
-              style={{ minHeight: "70vh" }}
+              src={site.resumePath}
+              className="h-full w-full"
+              style={{ minHeight: "75vh" }}
               title="Resume PDF"
             />
           </div>
-  
-          <p className="mt-3 text-xs text-ink-subtle">
-            If the preview doesn&apos;t load,{" "}
+        </div>
+
+        {/* Mobile: iframed PDFs are unreliable on iOS, so show a clear card */}
+        <div className="sm:hidden">
+          <div className="rounded-[var(--radius-card)] border border-border bg-surface p-8 text-center shadow-soft">
+            <p className="text-4xl" aria-hidden="true">
+              📄
+            </p>
+            <p className="mt-4 text-sm text-ink-subtle">
+              PDF previews don&apos;t render reliably on mobile. Tap below to
+              open or download my resume.
+            </p>
             <a
-              href="/resume.pdf"
+              href={site.resumePath}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-brand hover:underline"
+              className="mt-5 inline-flex items-center justify-center rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-white shadow-soft"
             >
-              click here to open or download the PDF
-            </a>.
-          </p>
-        </section>
-      </main>
-    );
-  }
+              View resume
+            </a>
+          </div>
+        </div>
+
+        <p className="mt-3 text-xs text-ink-subtle">
+          If the preview doesn&apos;t load,{" "}
+          <a
+            href={site.resumePath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand-strong hover:underline"
+          >
+            click here to open or download the PDF
+          </a>
+          .
+        </p>
+      </Container>
+    </main>
+  );
+}

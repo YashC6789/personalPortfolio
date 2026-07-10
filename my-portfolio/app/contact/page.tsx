@@ -1,65 +1,76 @@
-// app/contact/page.tsx
+import type { Metadata } from "next";
+import { site } from "@/data/site";
+import { Container, PageHeader } from "@/components/ui/Section";
+import CopyEmail from "@/components/contact/CopyEmail";
+import { GitHubIcon, LinkedInIcon } from "@/components/ui/icons";
 
-import Link from "next/link";
+export const metadata: Metadata = {
+  title: "Contact",
+  description: "Get in touch with Yashkaran Chauhan.",
+};
+
+const socialCards = [
+  {
+    label: "GitHub",
+    handle: "@YashC6789",
+    href: site.socials.github,
+    Icon: GitHubIcon,
+    blurb: "Code, projects, and experiments.",
+  },
+  {
+    label: "LinkedIn",
+    handle: "in/yashc1",
+    href: site.socials.linkedin,
+    Icon: LinkedInIcon,
+    blurb: "Experience and professional updates.",
+  },
+];
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground pt-32 px-4 md:px-6">
-      <section className="max-w-4xl mx-auto space-y-8">
+    <main className="pt-32 md:pt-40 pb-8">
+      <Container size="narrow">
+        <PageHeader
+          eyebrow="Get in touch"
+          title="Say hello."
+          subtitle="Whether it's about a role, a project, or just to chat about AI and security — I'd love to hear from you."
+        />
 
-        <header>
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-            Contact
-          </h1>
-          <p className="mt-3 text-foreground/70 text-sm md:text-base">
-            Want to reach out? Here are the best ways to get in touch.
-          </p>
-        </header>
+        <div className="mt-12 space-y-4">
+          <CopyEmail />
 
-        <div className="rounded-2xl border border-foreground/10 bg-background/50 backdrop-blur-md p-8 shadow-md space-y-6">
-
-          <div>
-            <h2 className="text-lg font-medium">Email</h2>
-            <p className="mt-1 text-sm text-foreground/70">
-              Feel free to reach out anytime.
-            </p>
-            <Link
-              href="mailto:your-email@example.com"
-              className="inline-block mt-2 text-sm text-foreground/80 hover:text-foreground underline"
-            >
-              your-email@example.com
-            </Link>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {socialCards.map(({ label, handle, href, Icon, blurb }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="
+                  group rounded-[var(--radius-card)] border border-border
+                  bg-surface p-6 shadow-soft
+                  hover:-translate-y-1 hover:shadow-lift hover:border-brand/30
+                  transition-all
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50
+                "
+              >
+                <div className="flex items-center gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand-strong group-hover:bg-brand group-hover:text-white transition-colors">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-lg font-semibold text-foreground">
+                      {label}
+                    </h2>
+                    <p className="font-mono text-xs text-ink-subtle">{handle}</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-ink-subtle">{blurb}</p>
+              </a>
+            ))}
           </div>
-
-          <div>
-            <h2 className="text-lg font-medium">Social</h2>
-            <div className="mt-2 flex flex-col gap-2">
-              <Link
-                href="https://github.com/your-username"
-                className="text-sm text-foreground/80 hover:text-foreground underline"
-              >
-                GitHub
-              </Link>
-
-              <Link
-                href="https://linkedin.com/in/your-link"
-                className="text-sm text-foreground/80 hover:text-foreground underline"
-              >
-                LinkedIn
-              </Link>
-
-              <Link
-                href="/"
-                className="text-sm text-foreground/80 hover:text-foreground underline"
-              >
-                Twitter / X (if applicable)
-              </Link>
-            </div>
-          </div>
-
         </div>
-
-      </section>
+      </Container>
     </main>
   );
 }
