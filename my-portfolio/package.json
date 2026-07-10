@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "blog:publish": "node scripts/publish-blog.mjs",
+    "blog:preview": "node scripts/publish-blog.mjs --dry-run"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.7.0",

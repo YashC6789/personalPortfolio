@@ -1,34 +1,42 @@
-// app/blog/page.tsx
-import Header from "@/components/Blog/Header";
-import Post from "@/components/Blog/Post";
-import { blogPosts } from "@/data/blogPosts";
+import type { Metadata } from "next";
+import PostCard from "@/components/blog/PostCard";
+import { getAllPosts } from "@/lib/blog";
+import { Container, PageHeader } from "@/components/ui/Section";
+import Reveal from "@/components/ui/Reveal";
+
+export const metadata: Metadata = {
+  title: "Blog",
+  description:
+    "Writing by Yashkaran Chauhan on building, learning, and machine learning.",
+};
 
 export default function BlogPage() {
-  const posts = [...blogPosts].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const posts = getAllPosts();
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <Header />
+    <main className="pt-32 md:pt-40 pb-8">
+      <Container size="narrow">
+        <PageHeader
+          eyebrow="Writing"
+          title="Notes on building & learning."
+          subtitle="Occasional posts about projects, machine learning, and what I'm currently exploring."
+        />
 
-      {/* Page content */}
-      <div className="pt-40 px-6">
-        <div className="max-w-5xl mx-auto space-y-6">
-          {posts.map((p, i) => (
-            <div key={p.slug}>
-                <div style={{ height: '15px' }} aria-hidden="true" />
-                <Post
-                    title={p.title}
-                    slug={p.slug}
-                    date={p.date}
-                    description={p.description}
-                    tags={p.tags}
-                />
-            </div>
+        <div className="mt-12 space-y-5">
+          {posts.map((post, i) => (
+            <Reveal key={post.slug} delay={i * 0.05}>
+              <PostCard
+                title={post.title}
+                slug={post.slug}
+                date={post.date}
+                description={post.description}
+                tags={post.tags}
+                readingTime={post.readingTime}
+              />
+            </Reveal>
           ))}
         </div>
-      </div>
+      </Container>
     </main>
   );
 }
