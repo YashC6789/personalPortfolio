@@ -2,6 +2,10 @@
 
 A modern, dynamic portfolio website built with Next.js and deployed on Google Cloud Run.
 
+> **Setting this up on a new computer?** Follow
+> [`docs/NEW_MACHINE_SETUP.md`](docs/NEW_MACHINE_SETUP.md) — it covers everything,
+> including the gitignored `.env.local` that git does not carry over.
+
 ## Features
 
 - 🎨 Modern, responsive design
